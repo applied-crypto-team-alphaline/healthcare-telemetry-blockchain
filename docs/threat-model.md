@@ -20,6 +20,9 @@ Sensitive telemetry data could be intercepted if communication is not properly e
 ### Compromised Device Identity
 A device's private key could be compromised, allowing attackers to impersonate the device.
 
+### Unauthorized Device Enrollment
+An attacker may try to register a rogue device in the system and obtain trusted status.
+
 ## Security Goals
 
 - Authenticate devices before communication
