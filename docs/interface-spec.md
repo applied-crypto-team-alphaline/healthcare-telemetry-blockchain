@@ -6,7 +6,16 @@ device_id: string
 public_key: string  
 timestamp: integer  
 status: active | revoked  
-signature: string  
+signature: string 
+
+device_id: string
+public_key: string
+algorithm: string
+key_version: integer
+timestamp: integer
+status: active | revoked
+issuer: string
+signature: string
 
 ## Telemetry Message Format
 
@@ -22,3 +31,4 @@ ERR_DEVICE_NOT_REGISTERED
 ERR_PUBLIC_KEY_MISMATCH  
 ERR_DEVICE_REVOKED  
 ERR_REPLAY_DETECTED  
+
