@@ -15,5 +15,10 @@ Public keys are used to verify device identity and establish secure communicatio
 ## Key Rotation
 Devices may generate new key pairs and update the blockchain registry while deactivating old keys.
 
+Example:
+
+Keys are rotated periodically, such as every 6 or 12 months.
+Keys must also be rotated immediately after suspected compromise or device reset.
+
 ## Compromise Handling
 If a device's private key is compromised, its public key is marked as revoked in the blockchain registry.
