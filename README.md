@@ -1,4 +1,6 @@
-# healthcare-telemetry-blockchain
+# Blockchain-Assisted Peer-to-Peer Authentication for Secure Healthcare Telemetry
+
+Team Member: Geethika Padamati, Zichen Fan
 
 # Problem Statement
 Healthcare telemetry systems are widely used to monitor patient conditions in hospitals, remote care environments, and wearable health devices. These systems continuously transmit sensitive medical data from sensors to monitoring platforms.
