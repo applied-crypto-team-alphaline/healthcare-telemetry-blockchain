@@ -33,10 +33,3 @@ SHA-256 is used for hashing operations and record verification.
 - Revoked devices are rejected during authentication.
 - Session keys are generated per communication session.
 
-### Key Management
-
-Each device generates its own Ed25519/X25519 key pair during provisioning.
-Private keys are stored securely on the device and never leave it.
-Public keys are registered with the trust management system / blockchain.
-Keys can be rotated periodically or upon suspected compromise.
-Revocation records are propagated to all verifiers.
