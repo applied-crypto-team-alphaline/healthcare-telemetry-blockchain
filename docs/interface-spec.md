@@ -8,14 +8,6 @@ timestamp: integer
 status: active | revoked  
 signature: string 
 
-device_id: string
-public_key: string
-algorithm: string
-key_version: integer
-timestamp: integer
-status: active | revoked
-issuer: string
-signature: string
 
 ## Telemetry Message Format
 
