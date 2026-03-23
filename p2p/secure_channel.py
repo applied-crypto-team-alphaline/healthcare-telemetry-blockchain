@@ -6,30 +6,39 @@ from crypto.encryption import encrypt_message, decrypt_message
 from p2p.device_emulator import generate_telemetry
 
 
+# Replay protection store
+seen_sequences = set()
+
+
+def verify_device(registry, device_id):
+    record = registry.lookup_device(device_id)
+    if not record:
+        print(f"{device_id} not found")
+        return False
+    if record["status"] != "active":
+        print(f"{device_id} is revoked")
+        return False
+    return True
+
+
 def demo_secure_communication():
     registry = DeviceRegistry()
 
-    # Step 1: create identities
-    a_private_id, a_public_id = generate_key_pair()
-    b_private_id, b_public_id = generate_key_pair()
+    # STEP 1: Generate identities
+    a_priv, a_pub = generate_key_pair()
+    b_priv, b_pub = generate_key_pair()
 
-    # Step 2: register devices in registry
-    registry.register_device("deviceA", serialize_public_key(a_public_id))
-    registry.register_device("deviceB", serialize_public_key(b_public_id))
+    # STEP 2: Register devices
+    registry.register_device("deviceA", serialize_public_key(a_pub))
+    registry.register_device("deviceB", serialize_public_key(b_pub))
 
-    # Step 3: verify devices
-    record_a = registry.lookup_device("deviceA")
-    record_b = registry.lookup_device("deviceB")
-
-    if not record_a or record_a["status"] != "active":
-        print("deviceA is not valid")
+    # STEP 3: Verify devices
+    if not verify_device(registry, "deviceA"):
+        return
+    if not verify_device(registry, "deviceB"):
         return
 
-    if not record_b or record_b["status"] != "active":
-        print("deviceB is not valid")
-        return
-
-    # Step 4: perform key exchange
+    # STEP 4: Key exchange
     a_kx_priv, a_kx_pub = generate_x25519_keypair()
     b_kx_priv, b_kx_pub = generate_x25519_keypair()
 
@@ -39,23 +48,40 @@ def demo_secure_communication():
     session_key_a = derive_session_key(shared_a)
     session_key_b = derive_session_key(shared_b)
 
-    # Step 5: generate telemetry
+    # STEP 5: Send telemetry
     telemetry = generate_telemetry()
+    seq = telemetry["sequence_number"]
+
     plaintext = json.dumps(telemetry)
 
-    # Step 6: encrypt and decrypt
     nonce, ciphertext = encrypt_message(session_key_a, plaintext)
+
+    # STEP 6: Replay protection
+    if seq in seen_sequences:
+        print("Replay attack detected! Message rejected.")
+        return
+    else:
+        seen_sequences.add(seq)
+
     decrypted = decrypt_message(session_key_b, nonce, ciphertext)
 
-    print("Original telemetry:")
+    print("\nOriginal telemetry:")
     print(plaintext)
+
     print("\nDecrypted telemetry:")
     print(decrypted)
 
-    # Step 7: revoke a device and test
+    # STEP 7: Simulate replay attack
+    print("\nSimulating replay attack...")
+    if seq in seen_sequences:
+        print("Replay attack detected! Blocked successfully.")
+
+    # STEP 8: Revoke device
     registry.revoke_device("deviceA")
-    revoked_record = registry.lookup_device("deviceA")
-    print("\nDeviceA status after revocation:", revoked_record["status"])
+
+    print("\nAfter revocation:")
+    if not verify_device(registry, "deviceA"):
+        print("Communication blocked due to revocation")
 
 
 if __name__ == "__main__":
