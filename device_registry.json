@@ -1,0 +1,12 @@
+{
+  "deviceB": {
+    "public_key": "d3a1d48cb2f05ac88c602a3f348594323ab2da3f338af19ab551a24b16c4ef5a",
+    "timestamp": 1774240094.0655127,
+    "status": "active"
+  },
+  "deviceA": {
+    "public_key": "1f6c0d9d97a380165521be4280115a31a9ac58e8dd1bf950e387f615fb5bc877",
+    "timestamp": 1774240111.1456692,
+    "status": "active"
+  }
+}
