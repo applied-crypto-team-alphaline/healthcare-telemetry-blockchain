@@ -6,8 +6,6 @@ def encrypt_message(session_key: bytes, plaintext: str):
     nonce = os.urandom(12)
     aesgcm = AESGCM(session_key)
     ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), None)
-
-    # Convert bytes to hex strings so JSON can carry them
     return nonce.hex(), ciphertext.hex()
 
 
