@@ -1,12 +1,191 @@
 {
-  "deviceB": {
-    "public_key": "345f41cfd1515a01330d9a5e94e202d3282615e3995297611aef05f1e31bdeb4",
-    "timestamp": 1774627792.5900712,
+  "Dev-A1": {
+    "certificate": {
+      "device_id": "Dev-A1",
+      "public_key": "5111934449b3224ad5e0f1f31b9943bec4ef33cf445604b4790fb1d9b367a27e",
+      "signature": "5014e0b4276fc8459a223aaa102769d0a1304eb28f68bff76a5cbe8a1ecea60240673220d202f23ec844f0f326046d7a442a7bd8d3b84d8b0a0059c6801f4f06"
+    },
+    "timestamp": 1775019526.9055698,
     "status": "active"
   },
-  "deviceA": {
-    "public_key": "723ba6e815455366bfcd6f92a3c2969eed561c74eccb14d2add085484c384cfa",
-    "timestamp": 1774627792.5894575,
-    "status": "revoked"
+  "Dev-A2": {
+    "certificate": {
+      "device_id": "Dev-A2",
+      "public_key": "2d08ec080c1838677e8f42c7edcd49e37d8b946a36235f5cf277ca1c0f45f34f",
+      "signature": "54ac8636915f549b2440c727df757656054305fc1505ce058372a2c25ce5e1d4b65dce1a7b580600b8429d6178ac506eb4d897704c81e2b0be5934827c49080a"
+    },
+    "timestamp": 1775019526.9083178,
+    "status": "active"
+  },
+  "Dev-A3": {
+    "certificate": {
+      "device_id": "Dev-A3",
+      "public_key": "c34197ee1c205eefa23a781fb36e42764c84869c80c5dbdf7f4aa6f554108e47",
+      "signature": "bb40755cc0378e9e37a8ab3c4564ebc77ef5b0b8f28729a17b99943128bbe0f183778129aa095b301e48aa95d7a3ffe226d86318cc37e1a80a628b691517b008"
+    },
+    "timestamp": 1775019526.910834,
+    "status": "active"
+  },
+  "Dev-A4": {
+    "certificate": {
+      "device_id": "Dev-A4",
+      "public_key": "c17ca2037dc8f8f61aaf211a414942a18de5d48b85804e39b9de0428d6328a7f",
+      "signature": "afb2490dad6729cbca69406e89783883bc39b716c7d051a3796e08b3633d772308d269314e237d3bd8559a4330d7d7d6d45a3c9d21bc4a105e4d1e25cb95110e"
+    },
+    "timestamp": 1775019526.9162905,
+    "status": "active"
+  },
+  "Dev-A5": {
+    "certificate": {
+      "device_id": "Dev-A5",
+      "public_key": "f19a75289b2e70139b25e7d115c1d9d3ce9f251b7410c7ce30ae2260c7dab254",
+      "signature": "3378e921242744a6b2b141005bff04f815b8bc898945e70d97d6937a7a64e66d3202c0c66df0bdc1331605b4ac72800547414fdd2a8f53ba55aea0bbe1403b02"
+    },
+    "timestamp": 1775019526.9187539,
+    "status": "active"
+  },
+  "Dev-A6": {
+    "certificate": {
+      "device_id": "Dev-A6",
+      "public_key": "303f733d54741f061bb21c1c6b12c7d6f85b721287cb66ae8d813f6709d25ea1",
+      "signature": "7c75ab8fb8166df8b09e8daa338f056d46d66932db070e965c50ec98c71c83b52e6da32ff1deb0ada9e46e6feea47671a512e6e45196dce669ab7aed0ce95107"
+    },
+    "timestamp": 1775019526.9206529,
+    "status": "active"
+  },
+  "Dev-A7": {
+    "certificate": {
+      "device_id": "Dev-A7",
+      "public_key": "760959cf93c686ff2953c911bb664925e05eb468d326649dbfb8a98cf4da0d16",
+      "signature": "8adf3f73d091e780487f95db18aa9fdbbaf8458eb46c5e669226e41e052cb767c0a9bfd8e9942751e012b037baaa5b5cb1c04a84550d667bac57bbc51db1a009"
+    },
+    "timestamp": 1775019526.924822,
+    "status": "active"
+  },
+  "Dev-A8": {
+    "certificate": {
+      "device_id": "Dev-A8",
+      "public_key": "e51eceb6bf0fe0e6cd415d1a7c2d4b6690dc0b721dfebc20355097b5d5eec36f",
+      "signature": "aa38b556d4aac60848f78e04d35807ffb85687e837dcf3b6753425486af12ddece1ea8ec57bbe29aee45c81d61330969ea1bd63fff2d11d0b107eb2f2dfbd902"
+    },
+    "timestamp": 1775019526.9317088,
+    "status": "active"
+  },
+  "Dev-A9": {
+    "certificate": {
+      "device_id": "Dev-A9",
+      "public_key": "74de595c37a8c91bb288c20afe3fa03b12d38c23883504cafd88941aede4f5ea",
+      "signature": "ab4ab63fe90573dec3580e822fc3f3310dc5cbe06e576f443650848bbcfdce4f6215019cd4148f909274c727cd1d2b25fe897c479c919027e9fa6e32030f3408"
+    },
+    "timestamp": 1775019526.9379454,
+    "status": "active"
+  },
+  "Dev-B1": {
+    "certificate": {
+      "device_id": "Dev-B1",
+      "public_key": "97305d10154f58909fb73756e5f2739b18366db269883954ad25619c0c2a895d",
+      "signature": "dd43d2b92051ba3faeedf50393c98548ca83e33a6588830e5320dd57e73196a9d631296a13b576d3f2b1b99c3de4c93e848b698f7123c89f24b213c42e280b0c"
+    },
+    "timestamp": 1775019526.948215,
+    "status": "active"
+  },
+  "Dev-B2": {
+    "certificate": {
+      "device_id": "Dev-B2",
+      "public_key": "de7f9ab0e2f9c4491a54acc9568059377f886a68b9a2797d998c5ae90d28f2ce",
+      "signature": "75545fb363ed37750e2b238c436eaaded16c32d1c023d8ced2ce6532ed8750b3436b9d7b22388db716ac69b26435dba9837468ba385932fca85c12d2fa63cc0f"
+    },
+    "timestamp": 1775019526.9522734,
+    "status": "active"
+  },
+  "Dev-B3": {
+    "certificate": {
+      "device_id": "Dev-B3",
+      "public_key": "84f8abf778a9c879a3c6939e21e78f567fbbb1424cb5dcfa1fdf1e59f435b37e",
+      "signature": "4f8958569263b3ea5b35ccbb884cbf6bced10fd1169e302e08d70c8f9f407c113fc493d3bbf5a0d6bd2bab179568836987379fd5dbfa6690ad8863bf48664e09"
+    },
+    "timestamp": 1775019526.9564905,
+    "status": "active"
+  },
+  "Dev-B4": {
+    "certificate": {
+      "device_id": "Dev-B4",
+      "public_key": "01787a3e435f8cd8c826e78e59879591d761b6797482c596e30a69b83fbd1ac6",
+      "signature": "3005d1230738f5981a6f7179083e1978951bf521db7145fea5c910620186f4cf5d937e2878b95dd6dd2c851867910f7cb36915984b3c849cb894bbbe83041408"
+    },
+    "timestamp": 1775019526.9608989,
+    "status": "active"
+  },
+  "Dev-B5": {
+    "certificate": {
+      "device_id": "Dev-B5",
+      "public_key": "9d15951fb4a0dceaf20883f2d96d1cfa7201f18d111c5dfcde7ff40b69229019",
+      "signature": "1111e8c507d4eb76af8dad9ef793f71f94bab1694c3ac57e81beba74ab0bb71f87b39788baf2ac5f3671661624ff599f3ac8f9935956d9105ac3f9a5a4fb500c"
+    },
+    "timestamp": 1775019526.9665034,
+    "status": "active"
+  },
+  "Dev-B6": {
+    "certificate": {
+      "device_id": "Dev-B6",
+      "public_key": "1dacd23e76f8accd9a8a60ead9d4264ee97666dc2bffb6609adf1c305a05f0b4",
+      "signature": "d65cf6b834627ec2b94c1936f1ce517efa096d651e54a5f5066c63655635f449c2f011454b6df5b4d656c8d473f5512848e4b85118e14a8809520776b7bf660f"
+    },
+    "timestamp": 1775019526.9689634,
+    "status": "active"
+  },
+  "Dev-B7": {
+    "certificate": {
+      "device_id": "Dev-B7",
+      "public_key": "cdc62dbed5e4c0b2d1d79855e5389291f0cf193a75cc5ed6bd3054423d55d53d",
+      "signature": "7b37c996c67ee82a67e3ec3ad5d6e5abcfdf5bd6ed1acf41d7c30020347fcfccc425f315f39f422fb36aaf8f05329510a2e311821d5737408812b16826565707"
+    },
+    "timestamp": 1775019526.9715972,
+    "status": "active"
+  },
+  "Dev-B8": {
+    "certificate": {
+      "device_id": "Dev-B8",
+      "public_key": "11296ae5e353482d0a2b20fe83262887d4e6f481cec4a24dbecd62e9672411cd",
+      "signature": "28ddaa2a9a25b5b15cd2dbeaf11562a430164c4e388112403b54d072824498a678260940268fb25642ea8e2f7ba3e9d6eaac3fcc11dd58197ff59d2537146002"
+    },
+    "timestamp": 1775019526.9745476,
+    "status": "active"
+  },
+  "Dev-B9": {
+    "certificate": {
+      "device_id": "Dev-B9",
+      "public_key": "ee7b54ac05ff6b263148a8fcc59e06a1ed9d3f6129ba01cd6c3fa07e4eb2fa26",
+      "signature": "b03f922ef45bbfcbab255115718fa8d28ab1ffdeaeb76b2828c4893351f97d6ff7e32f56289b886825365835af8f38c9e21f2243021e5d65a10403ecb80d1a0a"
+    },
+    "timestamp": 1775019526.9774358,
+    "status": "active"
+  },
+  "Dev-C1": {
+    "certificate": {
+      "device_id": "Dev-C1",
+      "public_key": "5f7075f3ccbf70db1d34628fc5b1e1a2c5d516c1e52c54090c1f306dd954f4d5",
+      "signature": "67be71e9a7c8bd1abd9092b95580c47d47c5af06f64799db0c7e4236745d6f4af28c77379ec20360a8b429cff6b5c573c8497a1932ce205f8e0fc74a6836650e"
+    },
+    "timestamp": 1775019526.9820406,
+    "status": "active"
+  },
+  "Dev-C2": {
+    "certificate": {
+      "device_id": "Dev-C2",
+      "public_key": "e2ab3c2d6fb4d7d2f2d40b4a3b147ab8022ef71fdbb6e9a4ce3c34f66a57a248",
+      "signature": "80fc9f7af695982255955770c848cc4de973f375a247a1efed84fd88c808a6265bfe70f47cb02aa46a5cce8152133bc966cadace0d7a122d470ef652f10d6a07"
+    },
+    "timestamp": 1775019526.9855037,
+    "status": "active"
+  },
+  "ICU_GATEWAY_01": {
+    "certificate": {
+      "device_id": "ICU_GATEWAY_01",
+      "public_key": "eb400747104d4067d9474a4190aaae53021e4ab19236393201e37295fdd68258",
+      "signature": "742cf7981a9da35d21a1efce55307aeb95ebc9113d57c1a22bae40e69db761b66ea17203d3850867d86435f20ca52b1c359c312625ffe286c12dd55768b8d40e"
+    },
+    "timestamp": 1775019526.9885132,
+    "status": "active"
   }
 }

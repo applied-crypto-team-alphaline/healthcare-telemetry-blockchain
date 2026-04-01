@@ -1,22 +1,47 @@
-import random
-import time
+import csv
 
 sequence_number = 0
+index = 0
+
+
+def load_dataset():
+    with open("data/healthcare_iot.csv", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
+
+
+dataset = load_dataset()
 
 
 def generate_telemetry():
-    global sequence_number
+    global index, sequence_number
+
+    row = dataset[index % len(dataset)]
+    index += 1
     sequence_number += 1
-    return {
+
+    telemetry = {
+        "patient_id": row["Patient ID"],
+        "device_id": row["Device ID"],
         "sequence_number": sequence_number,
-        "heart_rate": random.randint(60, 100),
-        "oxygen_level": random.randint(95, 100),
-        "temperature": round(random.uniform(36.5, 37.5), 1),
-        "timestamp": time.time()
+        "heart_rate": int(float(row["Heart Rate (bpm)"])),
+        "oxygen_level": int(float(row["oxygen_level"])),
+        "temperature": float(row["Temperature (°C)"]),
+        "blood_pressure": row["Blood Pressure (mmHg)"],
+        "timestamp": row["Timestamp"],
+        "ip_address": row["IP Address"],
+        "access_type": row["Access Type"],
+        "action": row["Action"],
+        "target": int(row["Target"]),
     }
+
+    return telemetry
+
+
+def get_unique_devices():
+    return sorted({row["Device ID"] for row in dataset})
 
 
 if __name__ == "__main__":
+    print("Unique devices:", len(get_unique_devices()))
     for _ in range(3):
         print(generate_telemetry())
-        time.sleep(1)

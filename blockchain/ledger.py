@@ -21,10 +21,10 @@ class DeviceRegistry:
         with open(self.registry_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-    def register_device(self, device_id, public_key):
+    def register_device(self, device_id, certificate):
         data = self._load()
         data[device_id] = {
-            "public_key": public_key,
+            "certificate": certificate,
             "timestamp": time.time(),
             "status": "active"
         }
@@ -41,3 +41,7 @@ class DeviceRegistry:
             self._save(data)
             return True
         return False
+
+    def reset_registry(self):
+        with open(self.registry_file, "w", encoding="utf-8") as f:
+            json.dump({}, f, indent=2)
