@@ -1,111 +1,146 @@
 import json
+import os
 import socket
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PublicKey
 
 from blockchain.ledger import DeviceRegistry
-from crypto.key_generation import (
-    generate_identity_key_pair,
-    serialize_identity_public_key,
-    generate_exchange_key_pair,
-)
-from crypto.key_exchange import derive_shared_secret, derive_session_key
 from crypto.encryption import encrypt_message
+from crypto.key_exchange import derive_session_key, derive_shared_secret
+from crypto.key_generation import (
+    generate_exchange_key_pair,
+    load_exchange_public_key_from_hex,
+    serialize_exchange_public_key,
+    sign_message,
+)
 from p2p.device_emulator import generate_telemetry
-
-HOST = "127.0.0.1"
-PORT = 5001
-
-
-def verify_device(registry, device_id):
-    record = registry.lookup_device(device_id)
-    if not record:
-        print(f"[CLIENT] {device_id} not found")
-        return False
-    if record["status"] != "active":
-        print(f"[CLIENT] {device_id} is revoked")
-        return False
-    return True
+from p2p.device_identity import ensure_registered_identity
+from p2p.secure_channel import build_handshake_message
 
 
-def recv_json(sock: socket.socket):
-    raw = sock.recv(8192)
-    if not raw:
-        return None
-    text = raw.decode("utf-8").strip()
-    print(f"[CLIENT] Raw received: {text}")
-    if not text:
-        return None
-    return json.loads(text)
+HOST = os.environ.get("P2P_HOST", "127.0.0.1")
+PORT = int(os.environ.get("P2P_PORT", "5001"))
+DEVICE_ID = os.environ.get("P2P_DEVICE_ID", "deviceA")
+RECEIVER_ID = os.environ.get("P2P_RECEIVER_ID", "ICU_GATEWAY_01")
+REGISTRY_FILE = os.environ.get("P2P_REGISTRY_FILE")
+TAMPER_SIGNATURE = os.environ.get("P2P_TAMPER_SIGNATURE", "0") == "1"
 
 
 def send_json(sock: socket.socket, payload: dict):
-    data = json.dumps(payload).encode("utf-8")
-    sock.sendall(data)
+    sock.sendall((json.dumps(payload) + "\n").encode("utf-8"))
+
+
+def recv_json(sock_file):
+    line = sock_file.readline()
+    if not line:
+        return None
+    return json.loads(line)
+
+
+def maybe_print_rejection(message):
+    if message and message.get("status") == "rejected":
+        print(json.dumps(message, indent=2))
+        return True
+    return False
+
+
+def tamper_signature(signature_hex: str) -> str:
+    signature_bytes = bytearray.fromhex(signature_hex)
+    signature_bytes[-1] ^= 0x01
+    return bytes(signature_bytes).hex()
 
 
 def main():
-    registry = DeviceRegistry()
+    registry = DeviceRegistry(registry_file=REGISTRY_FILE) if REGISTRY_FILE else DeviceRegistry()
+    identity = ensure_registered_identity(DEVICE_ID, registry)
 
-    # Register deviceA identity
-    _, a_public = generate_identity_key_pair()
-    registry.register_device("deviceA", serialize_identity_public_key(a_public))
-    print("[CLIENT] deviceA registered")
+    sender_exchange_private, sender_exchange_public = generate_exchange_key_pair()
+    sender_ephemeral_pub_hex = serialize_exchange_public_key(sender_exchange_public)
 
-    if not verify_device(registry, "deviceB"):
-        print("[CLIENT] deviceB must be registered first")
-        return
-
-    # Key exchange key pair
-    a_kx_priv, a_kx_pub = generate_exchange_key_pair()
-    a_kx_pub_hex = a_kx_pub.public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw
-    ).hex()
-
-    # CLIENT SOCKET: connect only, no bind/listen
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((HOST, PORT))
+    sock_file = client.makefile("r")
 
-    # Step 1: send hello
-    hello = {
-        "device_id": "deviceA",
-        "kx_public": a_kx_pub_hex
-    }
-    send_json(client, hello)
+    send_json(
+        client,
+        {
+            "message_type": "hello",
+            "device_id": DEVICE_ID,
+            "receiver_id": RECEIVER_ID,
+            "sender_ephemeral_pub_hex": sender_ephemeral_pub_hex,
+        },
+    )
 
-    # Step 2: receive server hello
-    server_hello = recv_json(client)
-    if server_hello is None:
-        print("[CLIENT] No response from server")
+    challenge_message = recv_json(sock_file)
+    if maybe_print_rejection(challenge_message):
+        sock_file.close()
+        client.close()
+        return
+    if not challenge_message or challenge_message.get("message_type") != "challenge":
+        raise RuntimeError("Did not receive challenge from receiver")
+
+    challenge_hex = challenge_message["challenge"]
+    receiver_ephemeral_pub_hex = challenge_message["receiver_ephemeral_pub_hex"]
+
+    signature = sign_message(
+        identity["private_key"],
+        build_handshake_message(
+            DEVICE_ID,
+            challenge_hex,
+            sender_ephemeral_pub_hex,
+            receiver_ephemeral_pub_hex,
+        ),
+    )
+    if TAMPER_SIGNATURE:
+        signature = tamper_signature(signature)
+
+    send_json(
+        client,
+        {
+            "message_type": "proof",
+            "device_id": DEVICE_ID,
+            "signature": signature,
+        },
+    )
+
+    client.settimeout(0.2)
+    try:
+        proof_response = recv_json(sock_file)
+    except socket.timeout:
+        proof_response = None
+    finally:
+        client.settimeout(None)
+
+    if maybe_print_rejection(proof_response):
+        sock_file.close()
         client.close()
         return
 
-    if server_hello["status"] != "ok":
-        print("[CLIENT] Connection rejected")
-        client.close()
-        return
+    receiver_pub = load_exchange_public_key_from_hex(receiver_ephemeral_pub_hex)
+    session_key = derive_session_key(derive_shared_secret(sender_exchange_private, receiver_pub))
 
-    # Step 3: derive session key
-    b_pub = X25519PublicKey.from_public_bytes(bytes.fromhex(server_hello["kx_public"]))
-    shared_secret = derive_shared_secret(a_kx_priv, b_pub)
-    session_key = derive_session_key(shared_secret)
-
-    # Step 4: send encrypted telemetry
     telemetry = generate_telemetry()
-    plaintext = json.dumps(telemetry)
-
-    nonce, ciphertext = encrypt_message(session_key, plaintext)
-
+    telemetry["device_id"] = DEVICE_ID
     payload = {
-        "sequence_number": telemetry["sequence_number"],
-        "nonce": nonce,
-        "ciphertext": ciphertext
+        "sender": DEVICE_ID,
+        "receiver": RECEIVER_ID,
+        "telemetry": telemetry,
     }
+    nonce, ciphertext = encrypt_message(session_key, json.dumps(payload))
 
-    send_json(client, payload)
-    print("[CLIENT] Sent encrypted telemetry")
+    send_json(
+        client,
+        {
+            "message_type": "telemetry",
+            "sequence_number": telemetry["sequence_number"],
+            "nonce": nonce,
+            "ciphertext": ciphertext,
+        },
+    )
 
+    response = recv_json(sock_file)
+    if response:
+        print(json.dumps(response, indent=2))
+
+    sock_file.close()
     client.close()
 
 
