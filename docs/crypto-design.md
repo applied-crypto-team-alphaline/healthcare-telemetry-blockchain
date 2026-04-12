@@ -1,35 +1,151 @@
-# Cryptographic Design
+# Crypto Design Decision Record (CDDR)
 
-## Identity Model
-Each device generates its own public and private key pair. The public key acts as the device's identity and is registered on the blockchain registry.
+Version: `v0.5-spec`  
+Status: Frozen for MVP implementation
 
-## Blockchain Identity Registry
-The blockchain acts as a decentralized registry where device public keys are stored. This allows peers to verify device identities without relying on a centralized certificate authority.
+## Goal
 
-## Cryptographic Primitives
+This project secures healthcare telemetry by combining:
 
-### Public Key Signatures
-Ed25519 signatures are used to verify device identity and ensure authenticity.
+- registry-based public-key trust
+- signed challenge-response authentication
+- ephemeral session-key establishment
+- authenticated encryption for telemetry payloads
 
-### Key Exchange
-X25519 (Elliptic Curve Diffie-Hellman) is used to derive shared session keys between communicating peers.
+The design is intentionally lightweight and avoids building a full PKI or production blockchain network.
 
-### Symmetric Encryption
-AES-GCM or ChaCha20-Poly1305 is used for authenticated encryption of telemetry messages.
+## Design Decisions
 
-### Hashing
-SHA-256 is used for hashing operations and record verification.
+### Identity and Signatures
 
-## Rationale
+- Primitive: `Ed25519`
+- Key size: Ed25519 standard curve keys
+- Purpose:
+  - device identity
+  - challenge-response authentication
+  - proof of private-key possession
 
-- Elliptic curve cryptography provides strong security with low computational overhead.
-- Authenticated encryption ensures both confidentiality and integrity of telemetry data.
-- Blockchain provides decentralized trust for identity verification.
+Reason:
 
-## Misuse Prevention
+- fast and widely used signature scheme
+- appropriate for lightweight device authentication
+- avoids custom cryptographic construction
 
-- Private keys are never stored on the blockchain.
-- Replay attacks are prevented using sequence numbers.
-- Revoked devices are rejected during authentication.
-- Session keys are generated per communication session.
+### Session Key Establishment
 
+- Primitive: `X25519`
+- Key size: X25519 standard curve keys
+- Purpose:
+  - ephemeral Elliptic Curve Diffie-Hellman key exchange
+  - per-session shared secret derivation
+
+Reason:
+
+- efficient elliptic-curve key agreement
+- good fit for short-lived secure sessions
+- separates long-term identity keys from session keys
+
+### KDF
+
+- Primitive: `HKDF-SHA256`
+- Output length: 32 bytes
+- Purpose:
+  - derive a session key from the X25519 shared secret
+
+Reason:
+
+- standard key derivation method
+- uses SHA-256
+- provides clean separation between raw shared secret and encryption key
+
+### Telemetry Encryption
+
+- Primitive: `AES-GCM`
+- Key size: 256-bit session key output from HKDF
+- Nonce size: 96 bits
+- Purpose:
+  - confidentiality
+  - integrity
+  - authenticated encryption of telemetry
+
+Reason:
+
+- standard AEAD scheme
+- widely available in existing libraries
+- appropriate for short structured telemetry payloads
+
+## Nonce Strategy
+
+- AES-GCM uses a fresh 96-bit random nonce per encryption
+- Nonces are generated with `os.urandom(12)`
+- Nonces are never reused intentionally within the prototype
+
+Misuse prevention:
+
+- a fresh nonce is generated for every encrypted message
+- encryption occurs only after authentication and session establishment
+
+## Replay Strategy
+
+- each telemetry record carries a `sequence_number`
+- replay detection uses `(sender, sequence_number)` tracking
+- repeated sequence numbers from the same sender are rejected
+
+Reason:
+
+- protects against simple replay of previously accepted telemetry
+- complements fresh challenge-response authentication
+
+## Trust Model
+
+- trusted device public keys are stored in the local ledger-style registry
+- the registry acts as the prototype trust anchor
+- devices must be:
+  - present in the registry
+  - marked `active`
+  - able to produce a valid signature
+
+This prototype does not use a traditional centralized certificate authority in the runtime trust path.
+
+## Authentication Message Binding
+
+The signed authentication message binds:
+
+- `device_id`
+- `challenge`
+- `sender_ephemeral_pub_hex`
+- `receiver_ephemeral_pub_hex`
+
+Reason:
+
+- proves identity
+- proves freshness
+- binds authentication to the exact session establishment attempt
+- reduces risk of key-substitution during handshake
+
+## Validation Discipline
+
+Before telemetry is accepted, the system must reject:
+
+- unregistered devices
+- revoked devices
+- invalid signature proofs
+- spoofed sender identities
+- replayed sequence numbers
+
+The implementation follows fail-closed behavior for these checks.
+
+## Versioning and Freeze Note
+
+This document defines the frozen cryptographic baseline for Week 5 / `v0.5-spec`.
+
+Frozen decisions:
+
+- `Ed25519` for identity and authentication
+- `X25519` for session establishment
+- `HKDF-SHA256` for session-key derivation
+- `AES-GCM` for telemetry encryption
+- random 96-bit AES-GCM nonce generation
+- sequence-number replay detection
+
+Any later change to these choices should be documented as a follow-up design decision record before implementation diverges.

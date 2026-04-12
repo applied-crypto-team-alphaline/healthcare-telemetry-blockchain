@@ -201,6 +201,13 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Local demo/runtime artifacts
+.DS_Store
+.device_keys/
+.registry_nodes/
+.tamper_demo/
+device_registry.json
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
