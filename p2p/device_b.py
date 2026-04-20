@@ -12,6 +12,7 @@ from crypto.key_generation import (
     serialize_exchange_public_key,
     verify_signature,
 )
+from p2p.audit import key_id_from_public_key, record_security_event
 from p2p.device_identity import ensure_registered_identity
 from p2p.secure_channel import build_handshake_message
 
@@ -35,7 +36,13 @@ def recv_json(conn_file):
 
 def main():
     registry = DeviceRegistry(registry_file=REGISTRY_FILE) if REGISTRY_FILE else DeviceRegistry()
-    ensure_registered_identity(DEVICE_ID, registry)
+    receiver_identity = ensure_registered_identity(DEVICE_ID, registry)
+    record_security_event(
+        "receiver_ready",
+        device_id=DEVICE_ID,
+        key_id=key_id_from_public_key(receiver_identity["public_key"]),
+        key_version="registry-current",
+    )
     seen_sequences = set()
 
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,13 +59,21 @@ def main():
         raise RuntimeError("Did not receive valid hello message")
 
     sender_id = hello["device_id"]
+    record_security_event("connection_received", sender=sender_id, receiver=DEVICE_ID)
     sender_record = registry.lookup_device(sender_id)
     if not sender_record:
+        record_security_event("authentication_failed", device_id=sender_id, reason="not_registered")
         send_json(conn, {"status": "rejected", "error": "ERR_DEVICE_NOT_REGISTERED"})
         conn.close()
         server.close()
         return
     if sender_record["status"] != "active":
+        record_security_event(
+            "authentication_failed",
+            device_id=sender_id,
+            key_id=key_id_from_public_key(sender_record["public_key"]),
+            reason="revoked",
+        )
         send_json(conn, {"status": "rejected", "error": "ERR_DEVICE_REVOKED"})
         conn.close()
         server.close()
@@ -92,10 +107,23 @@ def main():
     sender_public_key = load_identity_public_key_from_hex(sender_record["public_key"])
 
     if not verify_signature(sender_public_key, message, signature):
+        record_security_event(
+            "authentication_failed",
+            device_id=sender_id,
+            key_id=key_id_from_public_key(sender_record["public_key"]),
+            reason="invalid_signature",
+        )
         send_json(conn, {"status": "rejected", "error": "ERR_AUTH_PROOF_FAILED"})
         conn.close()
         server.close()
         return
+
+    record_security_event(
+        "authentication_succeeded",
+        device_id=sender_id,
+        key_id=key_id_from_public_key(sender_record["public_key"]),
+        key_version="registry-current",
+    )
 
     sender_pub = load_exchange_public_key_from_hex(sender_ephemeral_pub_hex)
     session_key = derive_session_key(derive_shared_secret(receiver_exchange_private, sender_pub))
@@ -106,6 +134,11 @@ def main():
 
     seq_key = (sender_id, telemetry_message["sequence_number"])
     if seq_key in seen_sequences:
+        record_security_event(
+            "replay_detected",
+            sender=sender_id,
+            sequence_number=telemetry_message["sequence_number"],
+        )
         send_json(conn, {"status": "rejected", "error": "ERR_REPLAY_DETECTED"})
         conn.close()
         server.close()
@@ -114,6 +147,14 @@ def main():
 
     plaintext = decrypt_message(session_key, telemetry_message["nonce"], telemetry_message["ciphertext"])
     decrypted_payload = json.loads(plaintext)
+    record_security_event(
+        "telemetry_accepted",
+        sender=sender_id,
+        receiver=DEVICE_ID,
+        sequence_number=telemetry_message["sequence_number"],
+        key_id=key_id_from_public_key(sender_record["public_key"]),
+        key_version="registry-current",
+    )
 
     send_json(
         conn,

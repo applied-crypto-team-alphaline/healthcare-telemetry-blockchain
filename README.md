@@ -23,6 +23,8 @@ The system does not implement a public blockchain or a production PKI. Instead, 
 
 Sensitive patient telemetry remains off-registry. The registry stores only device trust metadata and trust events such as registration and revocation.
 
+Security-relevant runtime events can also be written to a JSONL audit log through `AUDIT_LOG_FILE` or the default `security_audit.log`.
+
 ## Implemented Features
 
 - `Signed challenge-response authentication`
@@ -188,6 +190,7 @@ Important runtime note:
 
 - `device_identity.py` persists local identities under `DEVICE_KEY_DIR`
 - registry state is persisted in `P2P_REGISTRY_FILE`
+- security audit events are written to `AUDIT_LOG_FILE` or `security_audit.log`
 - using the same paths across runs keeps the demo state consistent
 
 ## Current Validation Coverage
@@ -237,3 +240,4 @@ The real socket-based P2P tests may be skipped in restricted environments where 
 - [System Design](docs/system-design.md)
 - [Architecture](docs/architecture.md)
 - [Interface Specification](docs/interface-spec.md)
+- [MVP Runbook](docs/mvp-runbook.md)

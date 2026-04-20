@@ -9,6 +9,7 @@ from crypto.key_generation import (
     serialize_identity_private_key,
     serialize_identity_public_key,
 )
+from p2p.audit import key_id_from_public_key, record_security_event
 
 
 KEY_DIR = Path(os.environ.get("DEVICE_KEY_DIR", ".device_keys"))
@@ -24,6 +25,12 @@ def load_or_create_identity(device_id: str):
     if identity_path.exists():
         data = json.loads(identity_path.read_text(encoding="utf-8"))
         private_key = load_identity_private_key_from_hex(data["private_key"])
+        record_security_event(
+            "identity_loaded",
+            device_id=device_id,
+            key_id=key_id_from_public_key(data["public_key"]),
+            key_version="local-current",
+        )
         return {
             "device_id": device_id,
             "private_key": private_key,
@@ -42,6 +49,12 @@ def load_or_create_identity(device_id: str):
             indent=2,
         ),
         encoding="utf-8",
+    )
+    record_security_event(
+        "identity_created",
+        device_id=device_id,
+        key_id=key_id_from_public_key(public_key_hex),
+        key_version="local-current",
     )
     return {
         "device_id": device_id,

@@ -14,6 +14,7 @@ from crypto.key_generation import (
     sign_message,
     verify_signature,
 )
+from p2p.audit import key_id_from_public_key, record_security_event
 from p2p.device_emulator import generate_telemetry, get_unique_devices
 
 
@@ -37,6 +38,12 @@ class SecureChannel:
         private_key, public_key = generate_identity_key_pair()
         public_key_hex = serialize_identity_public_key(public_key)
         self.registry.register_device(device_id, public_key_hex)
+        record_security_event(
+            "device_registered",
+            device_id=device_id,
+            key_id=key_id_from_public_key(public_key_hex),
+            key_version="registry-current",
+        )
         self.device_identities[device_id] = {
             "private_key": private_key,
             "public_key": public_key,
@@ -53,8 +60,10 @@ class SecureChannel:
     def verify_device(self, device_id):
         record = self.registry.lookup_device(device_id)
         if not record:
+            record_security_event("device_verification_failed", device_id=device_id, reason="not_registered")
             raise Exception(f"{device_id} is not registered")
         if record["status"] != "active":
+            record_security_event("device_verification_failed", device_id=device_id, reason="revoked")
             raise Exception(f"{device_id} is revoked")
         return record
 
@@ -114,7 +123,20 @@ class SecureChannel:
         identity_public_key = load_identity_public_key_from_hex(record["public_key"])
 
         if not verify_signature(identity_public_key, message, signature_hex):
+            record_security_event(
+                "authentication_failed",
+                device_id=sender,
+                key_id=key_id_from_public_key(record["public_key"]),
+                reason="invalid_signature",
+            )
             raise Exception(f"{sender} authentication proof failed")
+
+        record_security_event(
+            "authentication_succeeded",
+            device_id=sender,
+            key_id=key_id_from_public_key(record["public_key"]),
+            key_version="registry-current",
+        )
 
         return {
             "device_id": sender,
@@ -161,10 +183,21 @@ class SecureChannel:
 
     def send_secure(self, sender, receiver, telemetry):
         if telemetry["device_id"] != sender:
+            record_security_event(
+                "telemetry_rejected",
+                sender=sender,
+                telemetry_device_id=telemetry["device_id"],
+                reason="spoofing_detected",
+            )
             raise Exception("Spoofing detected")
 
         seq_key = (sender, telemetry["sequence_number"])
         if seq_key in self.seen_sequences:
+            record_security_event(
+                "replay_detected",
+                sender=sender,
+                sequence_number=telemetry["sequence_number"],
+            )
             raise Exception("Replay attack detected")
 
         session = self.establish_authenticated_session(sender, receiver)
@@ -186,6 +219,14 @@ class SecureChannel:
             nonce,
             ciphertext,
         )
+        record_security_event(
+            "telemetry_accepted",
+            sender=sender,
+            receiver=receiver,
+            sequence_number=telemetry["sequence_number"],
+            key_id=key_id_from_public_key(session["authentication"]["registry_public_key"]),
+            key_version="registry-current",
+        )
 
         return {
             "authentication": session["authentication"],
@@ -203,7 +244,15 @@ class SecureChannel:
         }
 
     def revoke_device(self, device_id):
-        self.registry.revoke_device(device_id)
+        record = self.registry.lookup_device(device_id)
+        revoked = self.registry.revoke_device(device_id)
+        if revoked and record:
+            record_security_event(
+                "device_revoked",
+                device_id=device_id,
+                key_id=key_id_from_public_key(record["public_key"]),
+                key_version="registry-current",
+            )
 
 
 def run_demo():
