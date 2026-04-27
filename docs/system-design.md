@@ -2,7 +2,7 @@
 
 Version: `v1.0-implemented-prototype`
 
-![Secure Telemetry System Architecture](../../Gemini_Generated_Image_q3z8lpq3z8lpq3z8.png)
+![Secure Telemetry System Architecture](../img/system.png)
 
 Figure 1. End-to-end system architecture showing telemetry devices, signed and encrypted transmission, hospital gateway validation, off-chain telemetry processing, and the 3-node permissioned registry used for trust management.
 
