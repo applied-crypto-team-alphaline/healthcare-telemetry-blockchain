@@ -107,6 +107,13 @@ Reason:
 
 This prototype does not use a traditional centralized certificate authority in the runtime trust path.
 
+Identity-binding rule:
+
+- an active `device_id` is bound to one registry public key
+- the same key may continue to use that `device_id`
+- a different key may not silently replace an active binding
+- revoked identities require explicit administrative re-enrollment before reuse
+
 ## Authentication Message Binding
 
 The signed authentication message binds:
@@ -132,6 +139,7 @@ Before telemetry is accepted, the system must reject:
 - invalid signature proofs
 - spoofed sender identities
 - replayed sequence numbers
+- active device IDs presented with a different public key than the registered binding
 
 The implementation follows fail-closed behavior for these checks.
 

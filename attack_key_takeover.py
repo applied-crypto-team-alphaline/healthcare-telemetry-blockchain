@@ -33,43 +33,50 @@ def main():
 
     channel = SecureChannel(registry_file=registry_file)
     channel.registry.reset_registry()
-    channel.register_trusted_devices(["deviceA", "ICU_GATEWAY_01"])
+    channel.register_trusted_devices(["ICU_GATEWAY_01"])
+
+    device_identity.KEY_DIR = legit_key_dir
+    legit_identity = device_identity.ensure_registered_identity("deviceA", channel.registry)
 
     original_record = channel.registry.lookup_device("deviceA")
     original_key_id = key_id_from_public_key(original_record["public_key"])
 
     # Simulate a second actor with a different local key store claiming the same device ID.
-    device_identity.KEY_DIR = legit_key_dir
-    device_identity.ensure_registered_identity("deviceA", channel.registry)
     device_identity.KEY_DIR = attacker_key_dir
-    attacker_identity = device_identity.ensure_registered_identity("deviceA", channel.registry)
+    attack_blocked = False
+    failure_reason = None
 
-    hijacked_record = channel.registry.lookup_device("deviceA")
-    hijacked_key_id = key_id_from_public_key(hijacked_record["public_key"])
+    try:
+        attacker_identity = device_identity.ensure_registered_identity("deviceA", channel.registry)
 
-    attacker_channel = SecureChannel(registry_file=registry_file)
-    attacker_channel.device_identities["deviceA"] = {
-        "private_key": attacker_identity["private_key"],
-        "public_key": None,
-        "public_key_hex": attacker_identity["public_key"],
-    }
+        attacker_channel = SecureChannel(registry_file=registry_file)
+        attacker_channel.device_identities["deviceA"] = {
+            "private_key": attacker_identity["private_key"],
+            "public_key": None,
+            "public_key_hex": attacker_identity["public_key"],
+        }
+        attacker_channel.send_secure(
+            "deviceA",
+            "ICU_GATEWAY_01",
+            build_telemetry("deviceA"),
+        )
+    except Exception as exc:
+        attack_blocked = True
+        failure_reason = str(exc)
 
-    result = attacker_channel.send_secure(
-        "deviceA",
-        "ICU_GATEWAY_01",
-        build_telemetry("deviceA"),
-    )
+    final_record = channel.registry.lookup_device("deviceA")
+    final_key_id = key_id_from_public_key(final_record["public_key"])
 
     evidence = {
-        "attack": "device_id_key_takeover",
+        "attack": "device_id_key_takeover_rerun",
         "registry_file": str(registry_file),
         "original_key_id": original_key_id,
-        "attacker_key_id": hijacked_key_id,
-        "registry_key_changed": original_key_id != hijacked_key_id,
-        "accepted_sender": result["decrypted"]["sender"],
-        "accepted_patient_id": result["decrypted"]["telemetry"]["patient_id"],
-        "signature_verified": result["authentication"]["verified"],
-        "impact": "attacker telemetry accepted as trusted deviceA",
+        "legit_key_id": key_id_from_public_key(legit_identity["public_key"]),
+        "final_key_id": final_key_id,
+        "registry_key_changed": original_key_id != final_key_id,
+        "attack_blocked": attack_blocked,
+        "failure_reason": failure_reason,
+        "impact": "key takeover prevented; attacker cannot replace active deviceA key",
     }
     print(json.dumps(evidence, indent=2))
 

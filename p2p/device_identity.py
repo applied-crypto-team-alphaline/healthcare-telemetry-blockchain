@@ -69,7 +69,32 @@ def ensure_registered_identity(device_id: str, registry: DeviceRegistry):
 
     if record is None:
         registry.register_device(device_id, identity["public_key"])
-    elif record["public_key"] != identity["public_key"] and record["status"] == "active":
-        registry.register_device(device_id, identity["public_key"])
+        record_security_event(
+            "identity_bound_to_registry",
+            device_id=device_id,
+            key_id=key_id_from_public_key(identity["public_key"]),
+            key_version="registry-current",
+            reason="new_registration",
+        )
+    elif record["public_key"] == identity["public_key"]:
+        return identity
+    elif record["status"] == "active":
+        record_security_event(
+            "identity_binding_rejected",
+            device_id=device_id,
+            existing_key_id=key_id_from_public_key(record["public_key"]),
+            presented_key_id=key_id_from_public_key(identity["public_key"]),
+            reason="active_device_key_mismatch",
+        )
+        raise RuntimeError(f"{device_id} is already bound to a different active key")
+    else:
+        record_security_event(
+            "identity_binding_rejected",
+            device_id=device_id,
+            existing_key_id=key_id_from_public_key(record["public_key"]),
+            presented_key_id=key_id_from_public_key(identity["public_key"]),
+            reason="revoked_device_requires_admin_reenrollment",
+        )
+        raise RuntimeError(f"{device_id} is revoked and requires explicit re-enrollment")
 
     return identity

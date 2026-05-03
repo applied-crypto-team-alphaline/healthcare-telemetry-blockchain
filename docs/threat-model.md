@@ -20,6 +20,9 @@ Sensitive telemetry data could be intercepted if communication is not properly e
 ### Compromised Device Identity
 A device's private key could be compromised, allowing attackers to impersonate the device.
 
+### Registry Key Rebinding / Ownership Takeover
+An attacker may try to claim an existing trusted `device_id` with a different public key and replace the active registry binding.
+
 ## Security Goals
 
 - Authenticate devices before communication
@@ -27,3 +30,13 @@ A device's private key could be compromised, allowing attackers to impersonate t
 - Ensure integrity of transmitted data
 - Prevent replay attacks
 - Allow compromised devices to be revoked
+- Prevent silent replacement of active device-to-key bindings
+
+## Final Mitigation Notes
+
+The final design enforces these identity-binding rules:
+
+- a new `device_id` may be registered once
+- an already active `device_id` may continue only with the same public key
+- a different public key for an active `device_id` is rejected
+- a revoked `device_id` requires explicit admin-controlled re-enrollment
