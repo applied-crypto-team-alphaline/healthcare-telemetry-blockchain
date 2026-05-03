@@ -45,6 +45,18 @@ Security-relevant runtime events can also be written to a JSONL audit log throug
 - `Hash-chained trust events`
   Each registration or revocation event contains `prev_hash` and `event_hash` so the chain can be verified.
 
+- `Admin-signed trust events`
+  Registry events are signed by a registry admin identity so event origin is authorized as well as tamper-evident.
+
+- `Explicit key lifecycle events`
+  The ledger supports `register`, `revoke`, `rotate`, and `reenroll` event types instead of silently replacing active device bindings.
+
+- `Quorum-based registry reads`
+  Device lookups and ledger views use 2-of-3 majority agreement across registry node replicas.
+
+- `Replica repair support`
+  Out-of-sync node copies can be repaired from the 2-of-3 majority ledger view instead of only being flagged as mismatched.
+
 - `Real socket-based P2P flow`
   `p2p/device_a.py` and `p2p/device_b.py` run an actual sender/receiver handshake over TCP sockets.
 
@@ -154,6 +166,7 @@ The demo:
 
 - creates a fresh registry with three replicated node files
 - appends `register` and `revoke` events
+- appends admin-signed trust events with explicit lifecycle semantics
 - verifies the chain before tampering
 - manually changes a stored event without recomputing its hash
 - shows that `verify_chain()` fails and replication status detects the mismatch

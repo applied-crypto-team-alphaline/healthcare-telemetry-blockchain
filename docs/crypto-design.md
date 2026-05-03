@@ -113,6 +113,7 @@ Identity-binding rule:
 - the same key may continue to use that `device_id`
 - a different key may not silently replace an active binding
 - revoked identities require explicit administrative re-enrollment before reuse
+- registry trust events are signed by an admin identity before they are accepted as valid history
 
 ## Authentication Message Binding
 

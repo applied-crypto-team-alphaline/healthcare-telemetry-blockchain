@@ -107,6 +107,8 @@ Each trust change is recorded as an event:
 
 - `register`
 - `revoke`
+- `rotate`
+- `reenroll`
 
 Each event includes:
 
@@ -114,6 +116,8 @@ Each event includes:
 - its own hash
 - a timestamp
 - the resulting device status
+- the registry admin public key
+- the registry admin signature
 
 This creates an append-only tamper-evident chain of trust events.
 
@@ -125,7 +129,13 @@ The implementation simulates three permissioned registry nodes. On each update:
 2. the primary registry file is updated
 3. node equality can be checked through `get_replication_status()`
 
-This is a replication simulation, not a consensus protocol. The purpose is to demonstrate multi-node trust state replication in a small prototype.
+At read time, the implementation now applies a simple 2-of-3 majority rule for registry views such as device lookup, event listing, and materialized device state.
+
+If quorum is not reached, the registry fails closed instead of trusting a minority view.
+
+If one replica diverges while two replicas agree, the implementation can repair the out-of-sync node from the majority ledger history.
+
+This is still not a full consensus protocol, but it is stronger than single-primary trust because node disagreement no longer defaults to blindly trusting one copy.
 
 ## 5. Node Model
 
@@ -165,6 +175,14 @@ Trust is established as follows:
 7. only then is the session considered authenticated
 
 This binds trust to the hospital-operated registry while proving private-key possession at runtime.
+
+Final trust-management rules:
+
+1. a new `device_id` may be registered once
+2. an active `device_id` remains bound to its current public key
+3. replacing an active key requires an explicit `rotate` event
+4. a revoked identity requires an explicit `reenroll` event with a new key
+5. registry trust events must carry a valid admin signature
 
 ## 7. Cryptographic Design
 
