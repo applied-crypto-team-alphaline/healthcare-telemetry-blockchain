@@ -2,7 +2,7 @@ Team Member: Geethika Padamati, Zichen Fan
 
 # Blockchain-Assisted Peer-to-Peer Authentication for Secure Healthcare Telemetry
 
-![Secure Telemetry System Architecture](img/system.png)
+![Secure Telemetry System Architecture](img/diagram.png)
 
 System overview showing the device layer, hospital gateway, hospital processing layer, clinical access layer, and the 3-node permissioned blockchain-style trust registry.
 
