@@ -1,11 +1,15 @@
 import csv
+from pathlib import Path
 
 sequence_number = 0
 index = 0
 
 
+DATASET_PATH = Path(__file__).resolve().parent.parent / "data" / "healthcare_iot.csv"
+
+
 def load_dataset():
-    with open("data/healthcare_iot.csv", encoding="utf-8") as f:
+    with open(DATASET_PATH, encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
