@@ -124,7 +124,7 @@ Use Python 3.8+.
 Install the libraries used by the project:
 
 ```bash
-pip install cryptography streamlit pandas altair pytest
+python3 -m pip install cryptography streamlit pandas altair pytest
 ```
 
 ## How To Run
@@ -134,7 +134,7 @@ pip install cryptography streamlit pandas altair pytest
 From the project root:
 
 ```bash
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q
 ```
 
 Note:
@@ -143,7 +143,7 @@ Some environments have globally installed `pytest` plugins that interfere with t
 ### Run the dashboard demo
 
 ```bash
-streamlit run dashboard.py
+python3 -m streamlit run dashboard.py
 ```
 
 The dashboard supports:
@@ -159,7 +159,7 @@ The dashboard supports:
 ### Run the tamper-detection demo
 
 ```bash
-python tamper_demo.py
+python3 tamper_demo.py
 ```
 
 The demo:
@@ -176,35 +176,40 @@ The demo:
 Start the receiver in one terminal:
 
 ```bash
-P2P_REGISTRY_FILE=/tmp/p2p_registry.json \
-DEVICE_KEY_DIR=/tmp/p2p_keys \
+DEMO_DIR=/tmp/healthcare_p2p_demo_run1
+P2P_REGISTRY_FILE=$DEMO_DIR/p2p_registry.json \
+DEVICE_KEY_DIR=$DEMO_DIR/p2p_keys \
+AUDIT_LOG_FILE=$DEMO_DIR/security_audit.log \
 P2P_PORT=5001 \
-python p2p/device_b.py
+python3 p2p/device_b.py
 ```
 
 Then start the sender in another terminal:
 
 ```bash
-P2P_REGISTRY_FILE=/tmp/p2p_registry.json \
-DEVICE_KEY_DIR=/tmp/p2p_keys \
+DEMO_DIR=/tmp/healthcare_p2p_demo_run1
+P2P_REGISTRY_FILE=$DEMO_DIR/p2p_registry.json \
+DEVICE_KEY_DIR=$DEMO_DIR/p2p_keys \
+AUDIT_LOG_FILE=$DEMO_DIR/security_audit.log \
 P2P_PORT=5001 \
-python p2p/device_a.py
+python3 p2p/device_a.py
 ```
 
 Expected success path:
 
 1. `device_b.py` starts a TCP server and waits for a connection.
 2. `device_a.py` loads or creates a device identity.
-3. Both peers perform signed challenge-response authentication.
-4. The sender encrypts telemetry and sends it over the socket.
-5. The receiver verifies, decrypts, and returns an `accepted` response.
+3. The receiver verifies the sender with signed challenge-response authentication.
+4. The sender and receiver derive a session key, then the sender encrypts telemetry over the socket.
+5. The receiver decrypts the telemetry and returns an `accepted` response.
 
 Important runtime note:
 
 - `device_identity.py` persists local identities under `DEVICE_KEY_DIR`
 - registry state is persisted in `P2P_REGISTRY_FILE`
 - security audit events are written to `AUDIT_LOG_FILE` or `security_audit.log`
-- using the same paths across runs keeps the demo state consistent
+- use the same `DEMO_DIR` value in both terminals for one demo run
+- using a fresh `DEMO_DIR` avoids stale registry state from earlier runs
 
 ## Current Validation Coverage
 

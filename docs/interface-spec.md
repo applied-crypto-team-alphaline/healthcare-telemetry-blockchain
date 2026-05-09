@@ -27,13 +27,15 @@ The registry stores append-only trust events.
 
 Required fields:
 
-- `event_type`: `register` | `revoke`
+- `event_type`: `register` | `revoke` | `rotate` | `reenroll`
 - `device_id`: string
 - `status`: `active` | `revoked`
 - `public_key`: hex string
 - `timestamp`: number
 - `prev_hash`: hex string
 - `event_hash`: hex string
+- `admin_public_key`: hex string
+- `admin_signature`: hex string
 
 Meaning:
 
@@ -41,6 +43,8 @@ Meaning:
 - `status`: resulting trust status after the event
 - `prev_hash`: hash of the previous event or genesis hash
 - `event_hash`: hash of the current canonicalized event payload
+- `admin_public_key`: Ed25519 public key for the registry admin identity that signed the event
+- `admin_signature`: Ed25519 signature over the event hash
 
 ## 3. Authentication Handshake
 
