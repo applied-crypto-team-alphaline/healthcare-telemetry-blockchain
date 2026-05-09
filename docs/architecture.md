@@ -6,7 +6,7 @@ The system uses a hybrid architecture:
 
 - a permissioned blockchain-style registry for device trust metadata
 - off-registry peer-to-peer telemetry transport
-- end-to-end authentication and encryption before telemetry is accepted
+- sender authentication and encrypted telemetry transport before telemetry is accepted
 
 This architecture keeps patient telemetry off-chain while making device trust decisions auditable and tamper-evident.
 
@@ -57,7 +57,7 @@ The secure channel is implemented in two forms:
 4. The receiver sends a fresh challenge and an ephemeral `X25519` public key.
 5. The sender signs the bound handshake message with `Ed25519`.
 6. The receiver verifies the signature against the registry public key.
-7. Both peers derive a shared session key using `X25519` and `HKDF-SHA256`.
+7. The sender and receiver derive a shared session key using `X25519` and `HKDF-SHA256`.
 8. Telemetry is encrypted with `AES-GCM`.
 9. Replay checks and trust checks determine whether telemetry is accepted or rejected.
 

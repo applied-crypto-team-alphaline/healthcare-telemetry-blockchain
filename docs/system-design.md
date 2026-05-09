@@ -218,7 +218,7 @@ Security properties demonstrated:
 4. the receiver issues a challenge
 5. the sender signs the handshake message
 6. the receiver verifies the signature using the registry public key
-7. both peers derive the same session key with `HKDF-SHA256`
+7. the sender and receiver derive the same session key with `HKDF-SHA256`
 8. the sender encrypts telemetry with `AES-GCM`
 9. the receiver decrypts telemetry
 10. telemetry is accepted only if all verification checks succeed
@@ -329,7 +329,7 @@ This project does not yet implement:
 ### Production-Inspired Future Work
 
 - explicit consensus or quorum-based node agreement
-- tamper recovery or divergence handling between replicas
+- stronger automated recovery workflows for node divergence
 - stronger operational key lifecycle controls
 - persistent hospital telemetry storage pipeline
 - richer audit trail and administrator tooling

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from blockchain.ledger import DeviceRegistry
-from p2p.device_identity import ensure_registered_identity
+import p2p.device_identity as device_identity
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -77,13 +77,22 @@ def parse_client_output(stdout):
     return json.loads(stdout) if stdout.strip() else None
 
 
+def register_test_identities(env, registry):
+    original_key_dir = device_identity.KEY_DIR
+    try:
+        device_identity.KEY_DIR = Path(env["DEVICE_KEY_DIR"])
+        device_identity.ensure_registered_identity("deviceA", registry)
+        device_identity.ensure_registered_identity("ICU_GATEWAY_01", registry)
+    finally:
+        device_identity.KEY_DIR = original_key_dir
+
+
 def test_real_p2p_rejects_revoked_device(tmp_path):
     port = get_free_port()
     env = build_env(tmp_path, port)
 
     registry = DeviceRegistry(registry_file=tmp_path / "registry.json")
-    ensure_registered_identity("deviceA", registry)
-    ensure_registered_identity("ICU_GATEWAY_01", registry)
+    register_test_identities(env, registry)
     registry.revoke_device("deviceA")
 
     client, server_returncode, _, server_stderr = run_p2p_pair(tmp_path, env)
@@ -101,8 +110,7 @@ def test_real_p2p_rejects_invalid_signature(tmp_path):
     env = build_env(tmp_path, port, {"P2P_TAMPER_SIGNATURE": "1"})
 
     registry = DeviceRegistry(registry_file=tmp_path / "registry.json")
-    ensure_registered_identity("deviceA", registry)
-    ensure_registered_identity("ICU_GATEWAY_01", registry)
+    register_test_identities(env, registry)
 
     client, server_returncode, _, server_stderr = run_p2p_pair(tmp_path, env)
 

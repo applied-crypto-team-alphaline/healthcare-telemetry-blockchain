@@ -49,7 +49,7 @@ As a result, a second actor could generate a new key pair and overwrite the trus
 Original exploit run:
 
 ```bash
-python attack_key_takeover.py
+python3 attack_key_takeover.py
 ```
 
 Before the patch, the expected outcome was:
@@ -72,7 +72,7 @@ The mitigation changes `ensure_registered_identity()` so that:
 Re-run:
 
 ```bash
-python attack_key_takeover.py
+python3 attack_key_takeover.py
 ```
 
 Expected post-patch outcome:

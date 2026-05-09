@@ -1,7 +1,7 @@
 # Key Lifecycle Plan
 
-Version: `v0.5-spec`  
-Status: Frozen for MVP implementation
+Version: `v1.0-implemented-prototype`  
+Status: Updated to match current implementation
 
 ## 1. Key Generation
 
@@ -45,14 +45,14 @@ During provisioning:
 If a device needs key rotation:
 
 1. generate a new Ed25519 identity key pair
-2. register the new public key in the registry
-3. revoke the old device record or mark the old key inactive
+2. append an explicit `rotate` event with the new public key
+3. keep the device status `active`
 4. require future authentication to validate only against the latest active key
 
 Prototype note:
 
-- current implementation supports registration and revocation directly
-- full automated rotation logic is planned but not yet implemented as a separate workflow
+- the registry supports explicit `register`, `revoke`, `rotate`, and `reenroll` lifecycle events
+- active device IDs cannot be silently rebound to a different key through registration
 
 ## 6. Compromise Response
 
@@ -61,7 +61,7 @@ If a device private key is suspected to be compromised:
 1. revoke the device immediately in the registry
 2. reject any future authentication from that revoked device
 3. generate a fresh identity key pair for recovery
-4. re-register the recovered device with a new active public key
+4. append an explicit `reenroll` event with a new active public key
 5. treat all prior compromised key material as invalid
 
 Security effect:
@@ -75,15 +75,6 @@ Security effect:
 - session keys are not reused across sessions intentionally
 - session keys are not stored in the registry
 
-## 8. Freeze Note
+## 8. Implementation Note
 
-This document defines the Week 5 / `v0.5-spec` baseline key lifecycle assumptions.
-
-Changes to:
-
-- long-term identity-key handling
-- session-key derivation flow
-- rotation rules
-- compromise procedures
-
-should be documented before implementation changes are made.
+This document reflects the implemented lifecycle model in `blockchain/ledger.py` and the active-binding protection in `p2p/device_identity.py`.

@@ -38,7 +38,7 @@ Optional environment variables:
 Run the test suite:
 
 ```bash
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q
 ```
 
 Expected result:
@@ -51,7 +51,7 @@ Expected result:
 Recommended live demo:
 
 ```bash
-streamlit run dashboard.py
+python3 -m streamlit run dashboard.py
 ```
 
 Suggested flow:
@@ -67,21 +67,23 @@ Suggested flow:
 Terminal 1:
 
 ```bash
-P2P_REGISTRY_FILE=/tmp/p2p_registry.json \
-DEVICE_KEY_DIR=/tmp/p2p_keys \
-AUDIT_LOG_FILE=/tmp/security_audit.log \
+DEMO_DIR=/tmp/healthcare_p2p_demo_run1
+P2P_REGISTRY_FILE=$DEMO_DIR/p2p_registry.json \
+DEVICE_KEY_DIR=$DEMO_DIR/p2p_keys \
+AUDIT_LOG_FILE=$DEMO_DIR/security_audit.log \
 P2P_PORT=5001 \
-python p2p/device_b.py
+python3 p2p/device_b.py
 ```
 
 Terminal 2:
 
 ```bash
-P2P_REGISTRY_FILE=/tmp/p2p_registry.json \
-DEVICE_KEY_DIR=/tmp/p2p_keys \
-AUDIT_LOG_FILE=/tmp/security_audit.log \
+DEMO_DIR=/tmp/healthcare_p2p_demo_run1
+P2P_REGISTRY_FILE=$DEMO_DIR/p2p_registry.json \
+DEVICE_KEY_DIR=$DEMO_DIR/p2p_keys \
+AUDIT_LOG_FILE=$DEMO_DIR/security_audit.log \
 P2P_PORT=5001 \
-python p2p/device_a.py
+python3 p2p/device_a.py
 ```
 
 Expected happy-path result:
@@ -93,7 +95,7 @@ Expected happy-path result:
 ## Tamper Detection Demo
 
 ```bash
-python tamper_demo.py
+python3 tamper_demo.py
 ```
 
 Expected result:
@@ -135,4 +137,4 @@ Logged fields may include:
 
 ## MVP Submission Note
 
-For the MVP milestone, the recommended release tag should point to the commit used for the live demo and CI-validated test run.
+For the final demo, use a clean dependency environment, a fresh `DEMO_DIR`, and the same commit for the README, report, and live run.
